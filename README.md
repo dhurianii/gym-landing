@@ -1,16 +1,66 @@
-# React + Vite
+# 🏋️ Gym Landing Page
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A professional React-based gym website with lead 
+capture form, pricing plans, and input validation.
 
-Currently, two official plugins are available:
+## 🚀 Live Demo
+👉 https://gym-landing-ashen.vercel.app
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## What It Does
+- Professional gym landing page with dark gold theme
+- 3 pricing plans — Basic, Pro, Elite
+- Lead capture form with modal popup
+- Form validation — name, phone, goal
+- Success screen after form submission
 
-## React Compiler
+## 🛠️ Tech Used
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Expanding the ESLint configuration
+![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+
+
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)
+
+
+
+
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
+
+
+
+
+![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat&logo=vercel&logoColor=white)
+
+
+
+## ⚛️ React Concepts Used
+- Functional components
+- Props — passing data between components
+- useState — form data, modal visibility
+- Conditional rendering — show/hide modal
+- Event handlers — onClick, onChange
+
+## 📋 Components Built
+| Component | What it does |
+|-----------|-------------|
+| Navbar | Fixed top navigation |
+| Hero | Main banner with CTA button |
+| Plans | 3 pricing cards |
+| LeadForm | Modal form with validation |
+
+## ✅ Form Validation
+- Name — minimum 2 characters
+- Phone — exactly 10 digits, Indian format
+- Phone — only numbers allowed
+- Goal — must be selected
+
+## 💡 What I Learned
+How to break a UI into reusable components,
+pass data with props, manage state with useState,
+and handle form validation in React.
+
+---
+Built as part of my 90-Day Job-Ready Sprint
+by [Aniket Dhuri](https://github.com/dhurianii) 🚀
