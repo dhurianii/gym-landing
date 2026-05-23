@@ -32,6 +32,18 @@ function Navbar() {
             {item}
           </a>
         ))}
+        <a href="/dashboard"
+          style={{
+            color: '#000',
+            textDecoration: 'none',
+            fontSize: '13px',
+            fontWeight: '700',
+            background: 'linear-gradient(135deg, #D4AF37, #F5D77E)',
+            padding: '8px 18px',
+            borderRadius: '8px'
+          }}>
+          Dashboard →
+        </a>
       </div>
     </nav>
   )
@@ -260,7 +272,7 @@ function LeadForm({ onClose }) {
   const [goal, setGoal] = useState('')
   const [submitted, setSubmitted] = useState(false)
 
-async function handleSubmit() {
+  async function handleSubmit() {
     // Name validation
     if (!name || name.trim().length < 2) {
       alert('Naam kam se kam 2 characters ka hona chahiye!')
@@ -297,7 +309,7 @@ async function handleSubmit() {
     setSubmitted(true)
   }
 
-  
+
 
   if (submitted) {
     return (
