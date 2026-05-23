@@ -1,5 +1,5 @@
 import { useState } from 'react'
-
+import { supabase } from './supabase'
 // ── COMPONENT 1: Navbar ──────────────────────────
 function Navbar() {
   return (
@@ -260,7 +260,7 @@ function LeadForm({ onClose }) {
   const [goal, setGoal] = useState('')
   const [submitted, setSubmitted] = useState(false)
 
-  function handleSubmit() {
+async function handleSubmit() {
     // Name validation
     if (!name || name.trim().length < 2) {
       alert('Naam kam se kam 2 characters ka hona chahiye!')
@@ -283,8 +283,21 @@ function LeadForm({ onClose }) {
       return
     }
 
+    // Save to Supabase
+    const { error } = await supabase
+      .from('leads')
+      .insert([{ name, phone, goal }])
+
+    if (error) {
+      alert('Kuch problem hui! Try again.')
+      console.error(error)
+      return
+    }
+
     setSubmitted(true)
   }
+
+  
 
   if (submitted) {
     return (
