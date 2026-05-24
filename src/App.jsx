@@ -98,20 +98,22 @@ function Hero({ onJoinClick }) {
         modern equipment, real results.
       </p>
 
-      <button
-        onClick={onJoinClick}
-        style={{
-          background: 'linear-gradient(135deg, #D4AF37, #F5D77E)',
-          color: '#000',
-          padding: '16px 40px',
-          border: 'none',
-          borderRadius: '10px',
-          fontSize: '16px',
-          fontWeight: '700',
-          cursor: 'pointer'
-        }}>
-        Start Free Trial →
-      </button>
+     <button
+  data-tally-open="VLbl7j"
+  data-tally-emoji-text="👋"
+  data-tally-emoji-animation="wave"
+  style={{
+    background: 'linear-gradient(135deg, #D4AF37, #F5D77E)',
+    color: '#000',
+    padding: '16px 40px',
+    border: 'none',
+    borderRadius: '10px',
+    fontSize: '16px',
+    fontWeight: '700',
+    cursor: 'pointer'
+  }}>
+  Start Free Trial →
+</button>
 
       <div style={{
         display: 'flex',
@@ -305,6 +307,19 @@ function LeadForm({ onClose }) {
       console.error(error)
       return
     }
+// Send to n8n webhook
+await fetch('https://codeartist.app.n8n.cloud/webhook/gym-lead', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    name,
+    phone,
+    goal
+  })
+})
+
 
     setSubmitted(true)
   }
