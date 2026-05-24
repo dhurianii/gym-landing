@@ -1,56 +1,155 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { motion, useInView, useAnimation } from 'framer-motion'
 import { supabase } from './supabase'
-// ── COMPONENT 1: Navbar ──────────────────────────
-function Navbar() {
+// ── RESPONSIVE STYLES ──────────────────────────
+const isMobile = window.innerWidth <= 768
+
+// ── ANIMATION VARIANTS ──────────────────────────
+const fadeUp = {
+  hidden: { opacity: 0, y: 32 },
+  show: {
+    opacity: 1, y: 0,
+    transition: { duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }
+  }
+}
+
+const stagger = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.12 } }
+}
+
+const fadeIn = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { duration: 0.8 } }
+}
+
+// ── SCROLL ANIMATION WRAPPER ─────────────────────
+function ScrollReveal({ children, delay = 0 }) {
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true, margin: '-80px' })
   return (
-    <nav style={{
-      position: 'fixed',
-      top: 0, left: 0, right: 0,
-      background: 'rgba(0,0,0,0.9)',
-      padding: '18px 48px',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      borderBottom: '1px solid #222',
-      zIndex: 100
-    }}>
-      <div style={{
-        fontWeight: '800',
-        fontSize: '20px',
-        color: '#D4AF37'
-      }}>
-        💪 FitZone Gym
-      </div>
-      <div style={{ display: 'flex', gap: '32px' }}>
-        {['About', 'Plans', 'Contact'].map(item => (
-          <a key={item} href={`#${item.toLowerCase()}`}
-            style={{
-              color: '#888',
-              textDecoration: 'none',
-              fontSize: '14px'
-            }}>
-            {item}
-          </a>
-        ))}
-        <a href="/dashboard"
-          style={{
-            color: '#000',
-            textDecoration: 'none',
-            fontSize: '13px',
-            fontWeight: '700',
-            background: 'linear-gradient(135deg, #D4AF37, #F5D77E)',
-            padding: '8px 18px',
-            borderRadius: '8px'
-          }}>
-          Dashboard →
-        </a>
-      </div>
-    </nav>
+    <motion.div
+      ref={ref}
+      initial="hidden"
+      animate={inView ? 'show' : 'hidden'}
+      variants={fadeUp}
+      transition={{ delay }}
+    >
+      {children}
+    </motion.div>
   )
 }
 
-// ── COMPONENT 2: Hero ────────────────────────────
-function Hero({ onJoinClick }) {
+// ── COUNT UP ANIMATION ───────────────────────────
+function CountUp({ end, suffix = '' }) {
+  const [count, setCount] = useState(0)
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true })
+
+  useEffect(() => {
+    if (!inView) return
+    let start = 0
+    const duration = 2000
+    const step = end / (duration / 16)
+    const timer = setInterval(() => {
+      start += step
+      if (start >= end) { setCount(end); clearInterval(timer) }
+      else setCount(Math.floor(start))
+    }, 16)
+    return () => clearInterval(timer)
+  }, [inView, end])
+
+  return <span ref={ref}>{count}{suffix}</span>
+}
+
+// ── NAV ─────────────────────────────────────────
+function Nav() {
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  return (
+    <motion.nav
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      style={{
+        position: 'fixed',
+        top: 0, left: 0, right: 0,
+        height: '64px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '0 48px',
+        background: scrolled
+          ? 'rgba(10,10,10,0.92)'
+          : 'transparent',
+        backdropFilter: scrolled ? 'blur(20px)' : 'none',
+        borderBottom: scrolled
+          ? '1px solid rgba(255,255,255,0.06)'
+          : 'none',
+        transition: 'all 0.4s ease',
+        zIndex: 100,
+      }}>
+      <div style={{
+        fontWeight: 900,
+        fontSize: '18px',
+        letterSpacing: '4px',
+        color: '#C9A84C',
+        textTransform: 'uppercase'
+      }}>
+        FORGE
+      </div>
+      <div style={{
+        display: window.innerWidth <= 768 ? 'none' : 'flex',
+        gap: '40px',
+        alignItems: 'center'
+      }}>
+        {['Programs', 'Pricing'].map(item => (
+          <a key={item}
+            href={`#${item.toLowerCase()}`}
+            style={{
+              color: 'rgba(255,255,255,0.5)',
+              textDecoration: 'none',
+              fontSize: '13px',
+              letterSpacing: '1px',
+              transition: 'color 0.2s'
+            }}
+            onMouseEnter={e => e.target.style.color = '#fff'}
+            onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.5)'}
+          >
+            {item}
+          </a>
+        ))}
+        <a
+          href="#tally-open=VLbl7j&tally-emoji-text=👋&tally-emoji-animation=wave"
+          style={{
+            color: '#0A0A0A',
+            background: '#C9A84C',
+            padding: '10px 22px',
+            borderRadius: '6px',
+            fontSize: '13px',
+            fontWeight: '700',
+            letterSpacing: '0.5px',
+            textDecoration: 'none',
+            transition: 'opacity 0.2s'
+          }}
+          onMouseEnter={e => e.target.style.opacity = '0.85'}
+          onMouseLeave={e => e.target.style.opacity = '1'}
+        >
+          Begin →
+        </a>
+      </div>
+    </motion.nav>
+  )
+}
+
+// ── HERO ─────────────────────────────────────────
+function Hero() {
   return (
     <div style={{
       minHeight: '100vh',
@@ -59,420 +158,832 @@ function Hero({ onJoinClick }) {
       justifyContent: 'center',
       alignItems: 'center',
       textAlign: 'center',
-      padding: '100px 20px 60px',
-      background: 'radial-gradient(ellipse at top, #1a0a00 0%, #000 60%)'
+      padding: '0 24px',
+      position: 'relative',
+      overflow: 'hidden',
+      background: '#0A0A0A',
+    }}>
+
+      {/* Background Video */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          opacity: 0.35,
+          zIndex: 1,
+          pointerEvents: 'none'
+        }}
+      >
+        <source src="https://res.cloudinary.com/dyd1tkiph/video/upload/v1779623768/gym-bg_jlycoe.mp4" type="video/mp4" />
+      </video>
+
+      {/* Dark overlay */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        background: 'rgba(10,10,10,0.65)',
+        zIndex: 2,
+        pointerEvents: 'none'
+      }} />
+
+      {/* Gold line */}
+      <div style={{
+        position: 'absolute',
+        top: '61.8%',
+        left: '10%',
+        right: '10%',
+        height: '1px',
+        background: 'linear-gradient(90deg, transparent, rgba(201,168,76,0.15), transparent)',
+        zIndex: 2
+      }} />
+
+      {/* Content */}
+      <motion.div
+        variants={stagger}
+        initial="hidden"
+        animate="show"
+        style={{ maxWidth: '800px', position: 'relative', zIndex: 3 }}
+      >
+        {/* Label */}
+        <motion.p
+          variants={fadeUp}
+          style={{
+            fontSize: '11px',
+            letterSpacing: '4px',
+            color: '#C9A84C',
+            textTransform: 'uppercase',
+            marginBottom: '32px',
+            fontWeight: '500'
+          }}>
+          Mumbai's Premier Training Facility
+        </motion.p>
+
+        {/* H1 */}
+        <motion.h1
+          variants={fadeUp}
+          style={{
+            fontSize: 'clamp(56px, 8vw, 96px)',
+            fontWeight: 900,
+            lineHeight: 1.02,
+            letterSpacing: '-2px',
+            color: '#FFFFFF',
+            marginBottom: '8px',
+          }}>
+          Built
+        </motion.h1>
+        <motion.h1
+          variants={fadeUp}
+          style={{
+            fontSize: 'clamp(56px, 8vw, 96px)',
+            fontWeight: 900,
+            lineHeight: 1.02,
+            letterSpacing: '-2px',
+            color: '#C9A84C',
+            marginBottom: '40px',
+          }}>
+          Different.
+        </motion.h1>
+
+        {/* Sub */}
+        <motion.p
+          variants={fadeUp}
+          style={{
+            fontSize: '17px',
+            color: 'rgba(255,255,255,0.4)',
+            letterSpacing: '0.3px',
+            marginBottom: '56px',
+            lineHeight: 1.7,
+            maxWidth: '440px',
+            margin: '0 auto 56px'
+          }}>
+          Where serious people get serious results.
+          No noise. No gimmicks. Just work.
+        </motion.p>
+
+        {/* CTA */}
+        <motion.div variants={fadeUp}>
+          <a
+            href="#tally-open=VLbl7j&tally-emoji-text=👋&tally-emoji-animation=wave"
+            style={{
+              display: 'inline-block',
+              background: '#C9A84C',
+              color: '#0A0A0A',
+              padding: '18px 48px',
+              borderRadius: '6px',
+              fontSize: '14px',
+              fontWeight: '800',
+              letterSpacing: '1px',
+              textTransform: 'uppercase',
+              textDecoration: 'none',
+              transition: 'all 0.3s ease',
+            }}
+            onMouseEnter={e => {
+              e.target.style.background = '#D4B86A'
+              e.target.style.transform = 'translateY(-2px)'
+            }}
+            onMouseLeave={e => {
+              e.target.style.background = '#C9A84C'
+              e.target.style.transform = 'translateY(0)'
+            }}
+          >
+            Begin Your Transformation
+          </a>
+          <p style={{
+            marginTop: '16px',
+            fontSize: '12px',
+            color: 'rgba(255,255,255,0.2)',
+            letterSpacing: '1px'
+          }}>
+            First session complimentary. No commitment.
+          </p>
+        </motion.div>
+      </motion.div>
+
+      {/* Scroll indicator */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2, duration: 1 }}
+        style={{
+          position: 'absolute',
+          bottom: '40px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '8px',
+          zIndex: 3
+        }}>
+        <p style={{
+          fontSize: '10px',
+          letterSpacing: '3px',
+          color: 'rgba(255,255,255,0.2)',
+          textTransform: 'uppercase'
+        }}>Scroll</p>
+        <motion.div
+          animate={{ y: [0, 8, 0] }}
+          transition={{ repeat: Infinity, duration: 1.5 }}
+          style={{
+            width: '1px',
+            height: '40px',
+            background: 'linear-gradient(to bottom, rgba(201,168,76,0.5), transparent)'
+          }}
+        />
+      </motion.div>
+    </div>
+  )
+}
+// ── PROOF ────────────────────────────────────────
+function Proof() {
+  const stats = [
+    { number: 500, suffix: '+', label: 'Members' },
+    { number: 10, suffix: '+', label: 'Expert Trainers' },
+    { number: 5, suffix: '★', label: 'Google Rating' },
+    { number: 3, suffix: 'yrs', label: 'Proven Results' },
+  ]
+
+  return (
+    <div style={{
+      padding: window.innerWidth <= 768 ? '60px 20px' : '100px 48px',
+      borderTop: '1px solid rgba(255,255,255,0.04)',
+      borderBottom: '1px solid rgba(255,255,255,0.04)',
     }}>
       <div style={{
-        background: 'rgba(212,175,55,0.1)',
-        border: '1px solid rgba(212,175,55,0.3)',
-        borderRadius: '20px',
-        padding: '6px 16px',
-        color: '#D4AF37',
-        fontSize: '13px',
-        marginBottom: '24px'
+        maxWidth: '900px',
+        margin: '0 auto',
+        display: 'grid',
+        gridTemplateColumns: window.innerWidth <= 768
+          ? 'repeat(2, 1fr)'
+          : 'repeat(4, 1fr)',
+        gap: '1px',
       }}>
-        🏆 Mumbai's #1 Transformation Gym
-      </div>
-
-      <h1 style={{
-        fontSize: '64px',
-        fontWeight: '900',
-        lineHeight: 1.05,
-        marginBottom: '20px',
-        background: 'linear-gradient(135deg, #fff 0%, #D4AF37 100%)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent'
-      }}>
-        Transform Your<br />Body. Transform<br />Your Life.
-      </h1>
-
-      <p style={{
-        color: '#888',
-        fontSize: '18px',
-        maxWidth: '500px',
-        marginBottom: '40px',
-        lineHeight: 1.7
-      }}>
-        Join 500+ members who achieved their dream
-        physique at FitZone. Expert trainers,
-        modern equipment, real results.
-      </p>
-
-     <button
-  data-tally-open="VLbl7j"
-  data-tally-emoji-text="👋"
-  data-tally-emoji-animation="wave"
-  style={{
-    background: 'linear-gradient(135deg, #D4AF37, #F5D77E)',
-    color: '#000',
-    padding: '16px 40px',
-    border: 'none',
-    borderRadius: '10px',
-    fontSize: '16px',
-    fontWeight: '700',
-    cursor: 'pointer'
-  }}>
-  Start Free Trial →
-</button>
-
-      <div style={{
-        display: 'flex',
-        gap: '48px',
-        marginTop: '64px'
-      }}>
-        {[
-          { number: '500+', label: 'Members' },
-          { number: '10+', label: 'Trainers' },
-          { number: '5★', label: 'Rating' },
-          { number: '3yrs', label: 'Experience' },
-        ].map(stat => (
-          <div key={stat.label} style={{ textAlign: 'center' }}>
+        {stats.map((stat, i) => (
+          <ScrollReveal key={stat.label} delay={i * 0.1}>
             <div style={{
-              fontSize: '28px',
-              fontWeight: '800',
-              color: '#D4AF37'
+              textAlign: 'center',
+              padding: '0 24px',
+              borderRight: i < 3
+                ? '1px solid rgba(255,255,255,0.06)'
+                : 'none'
             }}>
-              {stat.number}
+              <div style={{
+                fontSize: '56px',
+                fontWeight: 900,
+                color: '#C9A84C',
+                letterSpacing: '-1px',
+                lineHeight: 1
+              }}>
+                <CountUp end={stat.number} suffix={stat.suffix} />
+              </div>
+              <div style={{
+                fontSize: '11px',
+                color: 'rgba(255,255,255,0.3)',
+                letterSpacing: '2px',
+                textTransform: 'uppercase',
+                marginTop: '12px'
+              }}>
+                {stat.label}
+              </div>
             </div>
-            <div style={{
-              fontSize: '12px',
-              color: '#666',
-              marginTop: '4px'
-            }}>
-              {stat.label}
-            </div>
-          </div>
+          </ScrollReveal>
         ))}
       </div>
     </div>
   )
 }
 
-// ── COMPONENT 3: Plans ───────────────────────────
-function Plans() {
-  const plans = [
+// ── PHILOSOPHY ───────────────────────────────────
+function Philosophy() {
+  return (
+    <div style={{
+      padding: window.innerWidth <= 768
+  ? '80px 20px'
+  : '120px 48px',
+      maxWidth: '900px',
+      margin: '0 auto',
+      display: 'grid',
+      gridTemplateColumns: window.innerWidth <= 768
+        ? '1fr'
+        : '1fr 1fr',
+      gap: window.innerWidth <= 768 ? '40px' : '80px',
+      alignItems: 'center'
+    }}>
+      <ScrollReveal>
+        <div style={{
+          borderLeft: '2px solid #C9A84C',
+          paddingLeft: '32px'
+        }}>
+          <p style={{
+            fontSize: 'clamp(28px, 3vw, 40px)',
+            fontWeight: 800,
+            lineHeight: 1.2,
+            color: '#FFFFFF',
+            letterSpacing: '-0.5px'
+          }}>
+            "We don't sell memberships.<br />
+            We build people."
+          </p>
+        </div>
+      </ScrollReveal>
+
+      <ScrollReveal delay={0.2}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <p style={{
+            fontSize: '15px',
+            color: 'rgba(255,255,255,0.45)',
+            lineHeight: 1.8
+          }}>
+            Most gyms sell you access to equipment.
+            We give you access to a system — one built
+            around the science of real transformation.
+          </p>
+          <p style={{
+            fontSize: '15px',
+            color: 'rgba(255,255,255,0.45)',
+            lineHeight: 1.8
+          }}>
+            Every trainer. Every program. Every decision
+            we make is in service of one thing — your
+            permanent change.
+          </p>
+        </div>
+      </ScrollReveal>
+    </div>
+  )
+}
+
+// ── PROGRAMS ─────────────────────────────────────
+function Programs() {
+  const programs = [
     {
-      name: 'Basic',
-      price: '₹999',
-      features: ['Gym Access', 'Locker', '1 Assessment'],
-      gold: false
+      label: '01',
+      name: 'Strength',
+      desc: 'For those who build. Progressive overload, compound movements, and the discipline to show up.',
+      tag: 'Barbell · Powerlifting · Mass'
     },
     {
-      name: 'Pro',
-      price: '₹1,799',
-      features: ['Everything in Basic', 'Personal Trainer', 'Diet Plan', 'Progress Tracking'],
-      gold: true
+      label: '02',
+      name: 'Performance',
+      desc: 'For athletes who compete. Sport-specific conditioning, speed work, and peak output.',
+      tag: 'Conditioning · Speed · Power'
     },
     {
-      name: 'Elite',
-      price: '₹2,999',
-      features: ['Everything in Pro', 'Unlimited Classes', 'Supplements', 'Priority Support'],
-      gold: false
+      label: '03',
+      name: 'Transformation',
+      desc: 'For those ready to change everything. Fat loss, body recomposition, and lasting habits.',
+      tag: 'Fat Loss · Recomp · Habits'
     },
   ]
 
   return (
-    <div id="plans" style={{
-      padding: '100px 20px',
-      maxWidth: '900px',
-      margin: '0 auto',
-      textAlign: 'center'
+    <div id="programs" style={{
+      padding: window.innerWidth <= 768
+  ? '80px 20px'
+  : '120px 48px',
+      borderTop: '1px solid rgba(255,255,255,0.04)',
     }}>
-      <p style={{
-        color: '#D4AF37',
-        fontSize: '12px',
-        letterSpacing: '3px',
-        textTransform: 'uppercase',
-        marginBottom: '12px'
-      }}>
-        Pricing
-      </p>
-      <h2 style={{
-        fontSize: '40px',
-        fontWeight: '800',
-        marginBottom: '48px',
-        color: '#fff'
-      }}>
-        Choose Your Plan
-      </h2>
-
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: '24px'
-      }}>
-        {plans.map(plan => (
-          <div key={plan.name} style={{
-            background: plan.gold
-              ? 'linear-gradient(135deg, #1a1200, #2a1e00)'
-              : '#111',
-            border: plan.gold
-              ? '1px solid rgba(212,175,55,0.5)'
-              : '1px solid #222',
-            borderRadius: '16px',
-            padding: '32px 24px',
-            position: 'relative'
+      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <ScrollReveal>
+          <p style={{
+            fontSize: '11px',
+            letterSpacing: '4px',
+            color: '#C9A84C',
+            textTransform: 'uppercase',
+            marginBottom: '16px'
           }}>
-            {plan.gold && (
-              <div style={{
-                position: 'absolute',
-                top: '-12px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                background: '#D4AF37',
-                color: '#000',
-                padding: '4px 16px',
-                borderRadius: '12px',
-                fontSize: '11px',
-                fontWeight: '700'
-              }}>
-                MOST POPULAR
-              </div>
-            )}
-            <h3 style={{
-              fontSize: '18px',
-              color: plan.gold ? '#D4AF37' : '#fff',
-              marginBottom: '8px'
-            }}>
-              {plan.name}
-            </h3>
-            <div style={{
-              fontSize: '36px',
-              fontWeight: '800',
-              color: '#fff',
-              marginBottom: '24px'
-            }}>
-              {plan.price}
-              <span style={{
-                fontSize: '14px',
-                color: '#666',
-                fontWeight: '400'
-              }}>/mo</span>
-            </div>
-            {plan.features.map(f => (
-              <div key={f} style={{
-                color: '#888',
-                fontSize: '13px',
-                padding: '8px 0',
-                borderBottom: '1px solid #1a1a1a',
-                textAlign: 'left'
-              }}>
-                ✓ {f}
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ── COMPONENT 4: Lead Form ───────────────────────
-function LeadForm({ onClose }) {
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [goal, setGoal] = useState('')
-  const [submitted, setSubmitted] = useState(false)
-
-  async function handleSubmit() {
-    // Name validation
-    if (!name || name.trim().length < 2) {
-      alert('Naam kam se kam 2 characters ka hona chahiye!')
-      return
-    }
-
-    // Phone validation
-    if (!phone) {
-      alert('Phone number bharo!')
-      return
-    }
-    if (!/^[6-9]\d{9}$/.test(phone)) {
-      alert('Valid Indian phone number daalo! (10 digits, 6-9 se shuru)')
-      return
-    }
-
-    // Goal validation
-    if (!goal) {
-      alert('Goal select karo!')
-      return
-    }
-
-    // Save to Supabase
-    const { error } = await supabase
-      .from('leads')
-      .insert([{ name, phone, goal }])
-
-    if (error) {
-      alert('Kuch problem hui! Try again.')
-      console.error(error)
-      return
-    }
-// Send to n8n webhook
-await fetch('https://codeartist.app.n8n.cloud/webhook/gym-lead', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({
-    name,
-    phone,
-    goal
-  })
-})
-
-
-    setSubmitted(true)
-  }
-
-
-
-  if (submitted) {
-    return (
-      <div style={overlayStyle}>
-        <div style={modalStyle}>
-          <div style={{ fontSize: '64px', marginBottom: '16px' }}>🎉</div>
-          <h2 style={{ color: '#D4AF37', marginBottom: '12px' }}>
-            Welcome, {name}!
-          </h2>
-          <p style={{ color: '#888', marginBottom: '32px' }}>
-            Humara trainer 24 ghante mein call karega.
+            Programs
           </p>
-          <button onClick={onClose} style={btnStyle}>
-            Done
-          </button>
+          <h2 style={{
+            fontSize: 'clamp(36px, 4vw, 52px)',
+            fontWeight: 900,
+            color: '#FFFFFF',
+            letterSpacing: '-1px',
+            marginBottom: '64px'
+          }}>
+            Choose your path.
+          </h2>
+        </ScrollReveal>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: window.innerWidth <= 768
+            ? '1fr'
+            : 'repeat(3, 1fr)',
+          gap: '1px',
+          background: 'rgba(255,255,255,0.06)',
+          border: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: '16px',
+          overflow: 'hidden'
+        }}>
+          {programs.map((p, i) => (
+            <ScrollReveal key={p.name} delay={i * 0.1}>
+              <motion.div
+                whileHover={{ background: 'rgba(201,168,76,0.04)' }}
+                style={{
+                  padding: '48px 36px',
+                  background: '#0F0F0F',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s',
+                  borderTop: '2px solid transparent',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+                onHoverStart={e => {
+                  e.target.style.borderTopColor = '#C9A84C'
+                }}
+              >
+                <div style={{
+                  fontSize: '11px',
+                  color: 'rgba(255,255,255,0.2)',
+                  letterSpacing: '2px',
+                  marginBottom: '24px'
+                }}>
+                  {p.label}
+                </div>
+                <h3 style={{
+                  fontSize: '28px',
+                  fontWeight: 800,
+                  color: '#FFFFFF',
+                  marginBottom: '16px',
+                  letterSpacing: '-0.5px'
+                }}>
+                  {p.name}
+                </h3>
+                <p style={{
+                  fontSize: '14px',
+                  color: 'rgba(255,255,255,0.4)',
+                  lineHeight: 1.7,
+                  marginBottom: '32px'
+                }}>
+                  {p.desc}
+                </p>
+                <p style={{
+                  fontSize: '11px',
+                  color: '#C9A84C',
+                  letterSpacing: '1px'
+                }}>
+                  {p.tag}
+                </p>
+              </motion.div>
+            </ScrollReveal>
+          ))}
         </div>
       </div>
-    )
-  }
+    </div>
+  )
+}
+
+// ── PRICING ──────────────────────────────────────
+function Pricing() {
+  const plans = [
+    {
+      name: 'Foundation',
+      price: '999',
+      features: ['Full gym access', 'Locker room', 'Initial assessment'],
+      popular: false
+    },
+    {
+      name: 'Performance',
+      price: '1,799',
+      features: ['Everything in Foundation', 'Personal trainer', 'Custom diet plan', 'Progress tracking'],
+      popular: true
+    },
+    {
+      name: 'Elite',
+      price: '2,999',
+      features: ['Everything in Performance', 'Unlimited classes', 'Recovery sessions', 'Priority support'],
+      popular: false
+    },
+  ]
 
   return (
-    <div style={overlayStyle}>
-      <div style={modalStyle}>
-        <h2 style={{
-          color: '#D4AF37',
-          marginBottom: '8px',
-          fontSize: '24px'
-        }}>
-          Start Free Trial 💪
-        </h2>
-        <p style={{
-          color: '#666',
-          fontSize: '13px',
-          marginBottom: '32px'
-        }}>
-          Apni details bharo — trainer call karega
-        </p>
-
-        <input
-          placeholder="Tumhara naam"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          style={inputStyle}
-        />
-        <input
-          placeholder="Phone number"
-          value={phone}
-          maxLength={10}
-          onChange={e => {
-            const val = e.target.value
-            if (/^\d*$/.test(val)) setPhone(val)
-          }}
-          style={inputStyle}
-        />
-        <select
-          value={goal}
-          onChange={e => setGoal(e.target.value)}
-          style={inputStyle}
-        >
-          <option value="">Goal select karo</option>
-          <option value="weight-loss">Weight Loss</option>
-          <option value="muscle-gain">Muscle Gain</option>
-          <option value="fitness">General Fitness</option>
-          <option value="strength">Strength Training</option>
-        </select>
-
-        <button onClick={handleSubmit} style={btnStyle}>
-          Submit →
-        </button>
-        <button
-          onClick={onClose}
-          style={{
-            ...btnStyle,
-            background: 'transparent',
-            color: '#666',
-            border: '1px solid #333',
-            marginTop: '8px'
+    <div id="pricing" style={{
+      padding: window.innerWidth <= 768
+  ? '80px 20px'
+  : '120px 48px',
+      borderTop: '1px solid rgba(255,255,255,0.04)',
+    }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <ScrollReveal>
+          <p style={{
+            fontSize: '11px',
+            letterSpacing: '4px',
+            color: '#C9A84C',
+            textTransform: 'uppercase',
+            marginBottom: '16px'
           }}>
-          Cancel
-        </button>
+            Pricing
+          </p>
+          <h2 style={{
+            fontSize: 'clamp(36px, 4vw, 52px)',
+            fontWeight: 900,
+            color: '#FFFFFF',
+            letterSpacing: '-1px',
+            marginBottom: '64px'
+          }}>
+            Simple. Honest. Premium.
+          </h2>
+        </ScrollReveal>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: window.innerWidth <= 768
+            ? '1fr'
+            : 'repeat(3, 1fr)',
+          gap: '16px'
+        }}>
+          {plans.map((plan, i) => (
+            <ScrollReveal key={plan.name} delay={i * 0.1}>
+              <div style={{
+                padding: '40px 32px',
+                background: plan.popular
+                  ? 'rgba(201,168,76,0.06)'
+                  : '#0F0F0F',
+                border: plan.popular
+                  ? '1px solid rgba(201,168,76,0.3)'
+                  : '1px solid rgba(255,255,255,0.06)',
+                borderRadius: '12px',
+                position: 'relative'
+              }}>
+                {plan.popular && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '-12px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: '#C9A84C',
+                    color: '#0A0A0A',
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    letterSpacing: '2px',
+                    padding: '4px 16px',
+                    borderRadius: '20px',
+                    textTransform: 'uppercase',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    Most Chosen
+                  </div>
+                )}
+                <p style={{
+                  fontSize: '13px',
+                  color: plan.popular
+                    ? '#C9A84C'
+                    : 'rgba(255,255,255,0.4)',
+                  letterSpacing: '2px',
+                  textTransform: 'uppercase',
+                  marginBottom: '24px'
+                }}>
+                  {plan.name}
+                </p>
+                <div style={{
+                  fontSize: '48px',
+                  fontWeight: 900,
+                  color: '#FFFFFF',
+                  letterSpacing: '-1px',
+                  marginBottom: '4px'
+                }}>
+                  ₹{plan.price}
+                </div>
+                <p style={{
+                  fontSize: '12px',
+                  color: 'rgba(255,255,255,0.2)',
+                  marginBottom: '32px',
+                  letterSpacing: '1px'
+                }}>
+                  per month
+                </p>
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  marginBottom: '40px'
+                }}>
+                  {plan.features.map(f => (
+                    <div key={f} style={{
+                      display: 'flex',
+                      gap: '12px',
+                      alignItems: 'flex-start'
+                    }}>
+                      <span style={{
+                        color: '#C9A84C',
+                        fontSize: '14px',
+                        marginTop: '1px'
+                      }}>—</span>
+                      <span style={{
+                        fontSize: '14px',
+                        color: 'rgba(255,255,255,0.5)',
+                        lineHeight: 1.5
+                      }}>
+                        {f}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <a
+                  href="#tally-open=VLbl7j&tally-emoji-text=👋&tally-emoji-animation=wave"
+                  style={{
+                    display: 'block',
+                    textAlign: 'center',
+                    padding: '14px',
+                    background: plan.popular ? '#C9A84C' : 'transparent',
+                    color: plan.popular ? '#0A0A0A' : 'rgba(255,255,255,0.5)',
+                    border: plan.popular
+                      ? 'none'
+                      : '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    letterSpacing: '1px',
+                    textTransform: 'uppercase',
+                    textDecoration: 'none',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Get Started
+                </a>
+              </div>
+            </ScrollReveal>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+// ── TESTIMONIALS ─────────────────────────────────
+function Testimonials() {
+  const testimonials = [
+    {
+      quote: 'I lost 18kg in 4 months. I have tried everything else. This is the only place that actually worked.',
+      name: 'Rahul M.',
+      detail: 'Mumbai · Weight Loss'
+    },
+    {
+      quote: 'The trainers here think differently. No generic plans. Everything is built around you.',
+      name: 'Priya S.',
+      detail: 'Mumbai · Strength Training'
+    },
+    {
+      quote: 'I have been a member for 2 years. The results speak for themselves. Worth every rupee.',
+      name: 'Arjun K.',
+      detail: 'Mumbai · Performance'
+    },
+  ]
+
+  return (
+    <div style={{
+      padding: window.innerWidth <= 768
+  ? '80px 20px'
+  : '120px 48px',
+      borderTop: '1px solid rgba(255,255,255,0.04)',
+    }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <ScrollReveal>
+          <p style={{
+            fontSize: '11px',
+            letterSpacing: '4px',
+            color: '#C9A84C',
+            textTransform: 'uppercase',
+            marginBottom: '16px'
+          }}>
+            Results
+          </p>
+          <h2 style={{
+            fontSize: 'clamp(36px, 4vw, 52px)',
+            fontWeight: 900,
+            color: '#FFFFFF',
+            letterSpacing: '-1px',
+            marginBottom: '64px'
+          }}>
+            Real people.<br />Real change.
+          </h2>
+        </ScrollReveal>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: window.innerWidth <= 768
+            ? '1fr'
+            : 'repeat(3, 1fr)',
+          gap: '1px',
+          background: 'rgba(255,255,255,0.06)',
+          border: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: '16px',
+          overflow: 'hidden'
+        }}>
+          {testimonials.map((t, i) => (
+            <ScrollReveal key={t.name} delay={i * 0.1}>
+              <div style={{
+                padding: '48px 36px',
+                background: '#0F0F0F',
+              }}>
+                <div style={{
+                  fontSize: '32px',
+                  color: '#C9A84C',
+                  marginBottom: '24px',
+                  lineHeight: 1,
+                  fontFamily: 'Georgia, serif'
+                }}>
+                  "
+                </div>
+                <p style={{
+                  fontSize: '15px',
+                  color: 'rgba(255,255,255,0.6)',
+                  lineHeight: 1.7,
+                  marginBottom: '32px',
+                  fontStyle: 'italic'
+                }}>
+                  {t.quote}
+                </p>
+                <div>
+                  <p style={{
+                    fontSize: '13px',
+                    color: '#FFFFFF',
+                    fontWeight: 700,
+                    marginBottom: '4px'
+                  }}>
+                    {t.name}
+                  </p>
+                  <p style={{
+                    fontSize: '11px',
+                    color: 'rgba(255,255,255,0.25)',
+                    letterSpacing: '1px'
+                  }}>
+                    {t.detail}
+                  </p>
+                </div>
+              </div>
+            </ScrollReveal>
+          ))}
+        </div>
       </div>
     </div>
   )
 }
 
-// Styles for modal
-const overlayStyle = {
-  position: 'fixed',
-  top: 0, left: 0, right: 0, bottom: 0,
-  background: 'rgba(0,0,0,0.85)',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 200
+// ── FINAL CTA ────────────────────────────────────
+function FinalCTA() {
+  return (
+    <div style={{
+      padding: window.innerWidth <= 768
+  ? '80px 20px'
+  : '120px 48px',
+      borderTop: '1px solid rgba(255,255,255,0.04)',
+      textAlign: 'center',
+      background: '#0F0F0F'
+    }}>
+      <ScrollReveal>
+        <p style={{
+          fontSize: '11px',
+          letterSpacing: '4px',
+          color: '#C9A84C',
+          textTransform: 'uppercase',
+          marginBottom: '24px'
+        }}>
+          Begin
+        </p>
+        <h2 style={{
+          fontSize: 'clamp(40px, 5vw, 72px)',
+          fontWeight: 900,
+          color: '#FFFFFF',
+          letterSpacing: '-1px',
+          marginBottom: '24px',
+          lineHeight: 1.05
+        }}>
+          Ready to be<br />different?
+        </h2>
+        <p style={{
+          fontSize: '16px',
+          color: 'rgba(255,255,255,0.3)',
+          marginBottom: '48px'
+        }}>
+          First session is on us.
+        </p>
+        <a
+          href="#tally-open=VLbl7j&tally-emoji-text=👋&tally-emoji-animation=wave"
+          style={{
+            display: 'inline-block',
+            background: '#C9A84C',
+            color: '#0A0A0A',
+            padding: '20px 56px',
+            borderRadius: '6px',
+            fontSize: '14px',
+            fontWeight: 800,
+            letterSpacing: '1.5px',
+            textTransform: 'uppercase',
+            textDecoration: 'none',
+          }}
+        >
+          Claim Your Free Session →
+        </a>
+      </ScrollReveal>
+    </div>
+  )
 }
 
-const modalStyle = {
-  background: '#111',
-  border: '1px solid #333',
-  borderRadius: '16px',
-  padding: '40px',
-  width: '100%',
-  maxWidth: '400px',
-  display: 'flex',
-  flexDirection: 'column'
-}
-
-const inputStyle = {
-  background: '#1a1a1a',
-  border: '1px solid #333',
-  borderRadius: '8px',
-  padding: '12px 16px',
-  color: '#fff',
-  fontSize: '14px',
-  marginBottom: '12px',
-  outline: 'none',
-  width: '100%'
-}
-
-const btnStyle = {
-  background: 'linear-gradient(135deg, #D4AF37, #F5D77E)',
-  color: '#000',
-  padding: '14px',
-  border: 'none',
-  borderRadius: '8px',
-  fontSize: '15px',
-  fontWeight: '700',
-  cursor: 'pointer',
-  width: '100%'
+// ── FOOTER ───────────────────────────────────────
+function Footer() {
+  return (
+    <footer style={{
+      padding: '40px 48px',
+      borderTop: '1px solid rgba(255,255,255,0.04)',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+    }}>
+      <div style={{
+        fontWeight: 900,
+        fontSize: '16px',
+        letterSpacing: '4px',
+        color: '#C9A84C'
+      }}>
+        FORGE
+      </div>
+      <p style={{
+        fontSize: '12px',
+        color: 'rgba(255,255,255,0.15)',
+        letterSpacing: '1px'
+      }}>
+        Mumbai, India · Built Different
+      </p>
+      <a
+        href="/dashboard"
+        style={{
+          fontSize: '12px',
+          color: 'rgba(255,255,255,0.2)',
+          textDecoration: 'none',
+          letterSpacing: '1px'
+        }}>
+        Admin →
+      </a>
+    </footer>
+  )
 }
 
 // ── MAIN APP ─────────────────────────────────────
 function App() {
-  const [showForm, setShowForm] = useState(false)
-
   return (
     <div style={{
-      background: '#000',
+      background: '#0A0A0A',
       minHeight: '100vh',
-      color: '#fff'
+      color: '#FFFFFF',
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+      overflowX: 'hidden'
     }}>
-      <Navbar />
-      <Hero onJoinClick={() => setShowForm(true)} />
-      <Plans />
-
-      {showForm && (
-        <LeadForm onClose={() => setShowForm(false)} />
-      )}
+      <Nav />
+      <Hero />
+      <Proof />
+      <Philosophy />
+      <Programs />
+      <Pricing />
+      <Testimonials />
+      <FinalCTA />
+      <Footer />
     </div>
   )
 }
